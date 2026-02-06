@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>千石抚子的门诊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #000;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #222;
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url("images/background.jpg") center center / cover no-repeat;
+      filter: blur(6px) brightness(0.8);
+      z-index: -1;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.2), transparent 60%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .chat-shell {
+      width: 420px;
+      max-width: 95vw;
+      height: 680px;
+      max-height: 95vh;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    .chat-header {
+      height: 64px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      background: linear-gradient(120deg, rgba(255,255,255,0.95), rgba(250,250,255,0.92));
+    }
+
+    .status-dots {
+      display: flex;
+      gap: 6px;
+      margin-right: 10px;
+    }
+
+    .status-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff5f57;
+      box-shadow:
+        16px 0 0 #febc2e,
+        32px 0 0 #28c840;
+    }
+
+    .header-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .header-texts {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .header-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .chat-main {
+      flex: 1;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, rgba(248, 250, 255, 0.9), rgba(244, 247, 252, 0.96));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .chat-main::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-main::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 999px;
+    }
+
+    .time-divider {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      margin: 2px 0 6px;
+    }
+
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 4px;
+    }
+
+    .msg-row.agent {
+      justify-content: flex-start;
+    }
+
+    .msg-row.user {
+      justify-content: flex-end;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #eee;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .msg-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .msg-bubble-wrapper {
+      max-width: 72%;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .msg-name {
+      font-size: 11px;
+      color: #888;
+      margin: 0 6px;
+    }
+
+    .msg-bubble {
+      padding: 8px 10px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .msg-bubble.agent {
+      background: #ffffff;
+      border-radius: 16px 16px 16px 4px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.05);
+      color: #222;
+    }
+
+    .msg-bubble.user {
+      background: #95ec69;
+      border-radius: 16px 16px 4px 16px;
+      color: #111;
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .msg-meta {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 1px;
+      text-align: right;
+    }
+
+    .footer {
+      padding: 8px 10px 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(251, 252, 255, 0.98);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .input-box {
+      flex: 1;
+      background: #f4f5f7;
+      border-radius: 20px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-box textarea {
+      border: none;
+      outline: none;
+      background: transparent;
+      resize: none;
+      width: 100%;
+      max-height: 80px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #222;
+    }
+
+    .input-box textarea::placeholder {
+      color: #aaa;
+    }
+
+    .send-btn {
+      border: none;
+      outline: none;
+      padding: 7px 14px;
+      border-radius: 18px;
+      background: #07c160;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(7, 193, 96, 0.35);
+      transition: all 0.15s ease-out;
+      white-space: nowrap;
+    }
+
+    .send-btn:disabled {
+      background: #b2e8c8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .send-btn:not(:disabled):active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(7, 193, 96, 0.4);
+    }
+
+    .footer-hint {
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .typing-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #999;
+      animation: typing-bounce 1s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes typing-bounce {
+      0%, 80%, 100% {
+        transform: translateY(0);
+        opacity: 0.3;
+      }
+      40% {
+        transform: translateY(-3px);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .chat-shell {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+      }
+    }
+
+    .email-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .email-modal.hidden {
+      display: none;
+    }
+    .email-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+    .email-modal-box {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .email-modal-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      margin: 0 0 16px;
+      white-space: pre-line;
+    }
+    .email-modal-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .email-modal-input:focus {
+      border-color: #07c160;
+      box-shadow: 0 0 0 2px rgba(7, 193, 96, 0.2);
+    }
+    .email-modal-input.error {
+      border-color: #e74c3c;
+    }
+    .email-modal-err {
+      font-size: 13px;
+      color: #e74c3c;
+      margin: 0 0 12px;
+      min-height: 1.2em;
+    }
+    .email-modal-btn {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      background: #07c160;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(7, 193, 96, 0.35);
+    }
+    .email-modal-btn:hover {
+      background: #06ad56;
+    }
+    .email-modal-btn:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="overlay"></div>
+
+  <div class="email-modal" id="email-modal">
+    <div class="email-modal-overlay"></div>
+    <div class="email-modal-box">
+      <p class="email-modal-desc" id="email-modal-desc">初次登陆的话拜托输入下电子邮件啦，假的也行，不过要符合电子邮件的格式哦。<br>如果不是第一次来，输入上次的电子邮件会使抚子更聪明哦。</p>
+      <input type="text" id="email-input" class="email-modal-input" placeholder="请输入电子邮件" autocomplete="email" />
+      <p class="email-modal-err" id="email-modal-err" aria-live="polite"></p>
+      <button type="button" class="email-modal-btn" id="email-submit-btn">确定</button>
+    </div>
+  </div>
+
+  <div class="chat-shell">
+    <div class="chat-header">
+      <div class="status-dots"><span></span></div>
+      <div class="header-main">
+        <div class="header-texts">
+          <div class="header-name" id="header-name">千石抚子</div>
+          <div class="header-sub" id="header-sub">在线 · 实习医生模式</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-main" id="chat-main">
+      <div class="time-divider" id="first-time-divider"></div>
+      <div class="msg-row agent">
+        <div class="msg-avatar">
+          <img id="agent-avatar-initial" src="images/CircleS.jpg" alt="千石抚子" />
+        </div>
+        <div class="msg-bubble-wrapper">
+          <div class="msg-name">千石抚子</div>
+          <div class="msg-bubble agent">
+            我是千石抚子，由灰鼠微调Qwen3-8B模型而来。由于资源限制，我被调得有点笨。我目前在医院实习，比较有兴趣解答你的身体状况相关的问题。来提问吧。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="input-row">
+        <div class="input-box">
+          <textarea
+            id="user-input"
+            rows="1"
+            placeholder="跟抚子说点什么..."
+          ></textarea>
+        </div>
+        <button id="send-btn" class="send-btn">发送</button>
+      </div>
+      <div class="footer-hint">
+        本页面仅供学习与娱乐，不能替代真实就医。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://onlinedoctor.icu/generate";
+
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const LAST_EMAIL_KEY = "goofyDoc_last_email";
+    let currentUid = null;
+
+    const emailModal = document.getElementById("email-modal");
+    const emailInput = document.getElementById("email-input");
+    const emailModalErr = document.getElementById("email-modal-err");
+    const emailSubmitBtn = document.getElementById("email-submit-btn");
+
+    function closeEmailModal() {
+      emailModal.classList.add("hidden");
+    }
+
+    function showEmailError(msg) {
+      emailModalErr.textContent = msg;
+      emailInput.classList.add("error");
+    }
+
+    function clearEmailError() {
+      emailModalErr.textContent = "";
+      emailInput.classList.remove("error");
+    }
+
+    function confirmEmail() {
+      const raw = (emailInput.value || "").trim();
+      clearEmailError();
+      if (!EMAIL_REGEX.test(raw)) {
+        showEmailError("请填写符合格式的电子邮件哦～");
+        return;
+      }
+      currentUid = raw.replace(/\./g, "");
+      try {
+        localStorage.setItem(LAST_EMAIL_KEY, raw);
+      } catch (e) {}
+      closeEmailModal();
+    }
+
+    emailSubmitBtn.addEventListener("click", confirmEmail);
+    emailInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmEmail();
+      }
+    });
+
+    (function initEmailModal() {
+      try {
+        const last = localStorage.getItem(LAST_EMAIL_KEY);
+        if (last) emailInput.value = last;
+      } catch (e) {}
+      emailInput.focus();
+    })();
+
+    const chatMain = document.getElementById("chat-main");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const headerName = document.getElementById("header-name");
+    const headerSub = document.getElementById("header-sub");
+    const headerAvatarImg = document.getElementById("header-avatar-img");
+
+    const agentAvatarOptions = ["images/CircleE.jpg", "images/CircleC.jpg"];
+
+    function scrollToBottom() {
+      requestAnimationFrame(() => {
+        chatMain.scrollTop = chatMain.scrollHeight;
+      });
+    }
+
+    function formatTime() {
+      const d = new Date();
+      const h = d.getHours().toString().padStart(2, "0");
+      const m = d.getMinutes().toString().padStart(2, "0");
+      return h + ":" + m;
+    }
+
+    function appendUserMessage(text) {
+      const row = document.createElement("div");
+      row.className = "msg-row user";
+
+      const bubbleWrapper = document.createElement("div");
+      bubbleWrapper.className = "msg-bubble-wrapper";
+
+      const bubble = document.createElement("div");
+      bubble.className = "msg-bubble user";
+      bubble.textContent = text;
+
+      const meta = document.createElement("div");
+      meta.className = "msg-meta";
+      meta.textContent = formatTime();
+
+      bubbleWrapper.appendChild(bubble);
+      bubbleWrapper.appendChild(meta);
+      row.appendChild(bubbleWrapper);
+
+      chatMain.appendChild(row);
+      scrollToBottom();
+    }
+
+    function appendAgentMessageSkeleton() {
+      const row = document.createElement("div");
+      row.className = "msg-row agent";
+
+      const avatar = document.createElement("div");
+      avatar.className = "msg-avatar";
+      const img = document.createElement("img");
+      img.alt = "千石抚子";
+      img.src = agentAvatarOptions[Math.floor(Math.random() * agentAvatarOptions.length)];
+      avatar.appendChild(img);
+
+      const bubbleWrapper = document.createElement("div");
+      bubbleWrapper.className = "msg-bubble-wrapper";
+
+      const name = document.createElement("div");
+      name.className = "msg-name";
+      name.textContent = "千石抚子";
+
+      const bubble = document.createElement("div");
+      bubble.className = "msg-bubble agent";
+
+      const typing = document.createElement("div");
+      typing.className = "typing-indicator";
+
+      const dot1 = document.createElement("span");
+      dot1.className = "typing-dot";
+      const dot2 = document.createElement("span");
+      dot2.className = "typing-dot";
+      const dot3 = document.createElement("span");
+      dot3.className = "typing-dot";
+
+      typing.appendChild(dot1);
+      typing.appendChild(dot2);
+      typing.appendChild(dot3);
+
+      bubble.appendChild(typing);
+
+      bubbleWrapper.appendChild(name);
+      bubbleWrapper.appendChild(bubble);
+
+      row.appendChild(avatar);
+      row.appendChild(bubbleWrapper);
+
+      chatMain.appendChild(row);
+      scrollToBottom();
+
+      return { row, bubble, typing };
+    }
+
+    function setLoadingState(isLoading) {
+      sendBtn.disabled = isLoading;
+      userInput.disabled = isLoading;
+      if (isLoading) {
+        headerName.textContent = "抚子正在输入中…";
+        headerSub.textContent = "千石抚子 · 正在思考";
+      } else {
+        headerName.textContent = "千石抚子";
+        headerSub.textContent = "在线 · 实习医生模式";
+      }
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text || sendBtn.disabled) return;
+
+      appendUserMessage(text);
+      userInput.value = "";
+
+      const agentSkeleton = appendAgentMessageSkeleton();
+      setLoadingState(true);
+
+      try {
+        const resp = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_input: text,
+            user_id: currentUid || "anonymous",
+          }),
+        });
+
+        if (!resp.ok) {
+          if (resp.status === 503 || resp.status === 429) {
+            let busyMsg = "抚子在同时处理多个请求有点力不从心呢，也许一会再来找我吧。";
+            try {
+              const errData = await resp.json();
+              if (errData && typeof errData.detail === "string") busyMsg = errData.detail;
+            } catch (e) {}
+            agentSkeleton.bubble.textContent = busyMsg;
+            const meta = document.createElement("div");
+            meta.className = "msg-meta";
+            meta.textContent = formatTime();
+            agentSkeleton.bubble.parentElement.appendChild(meta);
+            setLoadingState(false);
+            return;
+          }
+          throw new Error("网络错误：" + resp.status);
+        }
+
+        const data = await resp.json();
+        const replyText =
+          (data && (data.reply || data.generation || data.answer)) ||
+          "嗯……大概是网络或服务器出了点问题，可以稍后再试试。";
+
+        agentSkeleton.bubble.textContent = replyText;
+        const meta = document.createElement("div");
+        meta.className = "msg-meta";
+        meta.textContent = formatTime();
+        agentSkeleton.bubble.parentElement.appendChild(meta);
+      } catch (err) {
+        console.error(err);
+        agentSkeleton.bubble.textContent =
+          "我这边好像连不上后台了……可以稍微等等，或者刷新页面再试。";
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    userInput.addEventListener("input", () => {
+      userInput.style.height = "auto";
+      userInput.style.height = Math.min(userInput.scrollHeight, 96) + "px";
+    });
+
+    document.getElementById("first-time-divider").textContent = (() => {
+      const d = new Date();
+      return d.toLocaleString("zh-CN", {
+        hour12: false,
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    })();
+
+    scrollToBottom();
+  </script>
+</body>
+</html>
+
