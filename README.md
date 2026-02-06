@@ -1,5 +1,9 @@
 ## 笨笨实习生千石抚子语录（项目说明）
 
+<p align="center">
+  <img src="FrontEnd/images/CircleC.jpg" alt="千石抚子 · CircleC" width="260">
+</p>
+
 既然你都翻到这里来了，我就稍微认真一点，说清楚这个小项目是怎么运转的。省得你一边乱点代码一边头痛。
 
 ---
@@ -31,7 +35,7 @@
   这个文件夹是给你折腾微调用的。我的创造人灰鼠参考了[`这个仓库`](https://github.com/Hoper-J/AI-Guide-and-Demos-zh_CN)，真的很棒！
   - `Finetune/medicalLLM.py` 是一个简单的微调/数据处理脚本，你如果真有兴趣继续训练，就可以参考它自己改。  
   - `Finetune/tmp_medical.json` 是一小份中文医疗对话训练集切片，数据原始仓库来自 [`Chinese-medical-dialogue-data`](https://github.com/Toyhom/Chinese-medical-dialogue-data)。  
-  - 这里的东西主要是服务于你之前给抚子做 LoRA 微调那一套流程，正常使用聊天功能完全可以不用管。  
+  - 这里的东西主要是服务于之前给抚子做 LoRA 微调那一套流程，正常使用聊天功能完全可以不用管。  
 
 - **`FrontEnd/images/`**  
   前端页面用到的背景图和装饰图片。  
