@@ -1,3 +1,7 @@
+**中文** | [English](README_EN.md)
+
+---
+
 ## 笨笨实习生千石抚子语录（项目说明）
 
 <p align="center">
